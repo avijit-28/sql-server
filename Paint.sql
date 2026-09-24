@@ -764,3 +764,144 @@ select s.[material_name], tg.[value] as tag
 from [pup].[stg_raw_materials] as s
 cross apply 
     string_split(s.[tags],',') as tg
+
+
+----------------------------------------------------------------------
+--1
+ALTER TABLE [pup].[product_varient]
+ADD [status] VARCHAR(20) NULL;
+GO
+
+UPDATE [pup].[product_varient]
+SET [status] = CASE [varient_id]
+    WHEN 1 THEN 'Active'
+    WHEN 2 THEN 'Inactive'
+END
+WHERE [varient_id] IN (1, 2);
+
+SELECT
+    p.[product_name],
+    pv.[sku_code] AS sku,
+    pv.[manufacturing_cost_mrp] AS price
+FROM [pup].[product] AS p
+INNER JOIN [pup].[product_varient] AS pv
+    ON pv.[product_id] = p.[product_id]
+WHERE pv.[status] = 'Active';
+
+--2
+
+CREATE TABLE [pup].[product_varient_materials]
+(
+    [varient_id] INT NOT NULL,
+    [material_id] INT NOT NULL,
+
+    CONSTRAINT PK_product_varient_materials
+        PRIMARY KEY ([varient_id], [material_id]),
+
+    CONSTRAINT FK_pvm_variant
+        FOREIGN KEY ([varient_id])
+        REFERENCES [pup].[product_varient]([varient_id]),
+
+    CONSTRAINT FK_pvm_material
+        FOREIGN KEY ([material_id])
+        REFERENCES [pup].[raw_materials]([material_id])
+);
+GO
+
+INSERT INTO [pup].[product_varient_materials]
+    ([varient_id], [material_id])
+VALUES
+    (1, 1),  -- Titanium Dioxide
+    (1, 3),  -- Pure Acrylic
+    (1, 5),  -- Biocide: hazardous
+    (2, 2),  -- Calcium Carbonate
+    (2, 5);  -- Biocide: hazardous
+
+
+SELECT DISTINCT
+    pv.[sku_code] AS sku
+FROM [pup].[product_varient] AS pv
+INNER JOIN [pup].[product_varient_materials] AS pvm
+    ON pvm.[varient_id] = pv.[varient_id]
+INNER JOIN [pup].[raw_materials] AS rm
+    ON rm.[material_id] = pvm.[material_id]
+WHERE rm.[hazardous_flag] = 1;
+
+--3
+SELECT
+    p.[product_name],
+    pv.[sku_code] AS sku
+FROM [pup].[product] AS p
+LEFT OUTER JOIN [pup].[product_varient] AS pv
+    ON pv.[product_id] = p.[product_id]
+WHERE pv.[varient_id] IS NULL;
+
+
+--4
+SELECT
+    rm.[material_name],
+    rm.[reorder_level] AS current_reorder_level,
+    srm.[reorder_level] AS updated_reorder_level
+FROM [pup].[raw_materials] AS rm
+LEFT OUTER JOIN [pup].[stg_raw_materials] AS srm
+    ON srm.[material_id] = rm.[material_id];
+
+
+ --5
+ SELECT
+    pv.[sku_code] AS sku,
+    pv.[manufacturing_cost_mrp] AS price,
+    p.[product_name]
+FROM [pup].[product] AS p
+RIGHT OUTER JOIN [pup].[product_varient] AS pv
+    ON pv.[product_id] = p.[product_id];
+
+
+--6
+  SELECT
+    srm.[material_id],
+    srm.[material_name] AS staging_material_name,
+    rm.[material_name] AS target_material_name,
+    srm.[reorder_level] AS staging_reorder_level
+FROM [pup].[raw_materials] AS rm
+RIGHT OUTER JOIN [pup].[stg_raw_materials] AS srm
+    ON srm.[material_id] = rm.[material_id];
+
+
+--7
+SELECT
+    p.[product_name],
+    COALESCE(SUM(pv.[pack_size_lt]), 0) AS total_stock_count,
+    COUNT(pv.[varient_id]) AS total_variants,
+    SUM(CASE
+            WHEN pv.[status] = 'Active' THEN 1
+            ELSE 0
+        END) AS active_variants,
+    SUM(CASE
+            WHEN pv.[pack_size_lt] = 0 THEN 1
+            ELSE 0
+        END) AS out_of_stock_variants
+FROM [pup].[product] AS p
+LEFT OUTER JOIN [pup].[product_varient] AS pv
+    ON pv.[product_id] = p.[product_id]
+GROUP BY
+    p.[product_id],
+    p.[product_name];
+
+
+--8
+SELECT
+    COALESCE(rm.[material_id], srm.[material_id]) AS material_identifier,
+    rm.[material_name] AS main_material_name,
+    srm.[material_name] AS staging_material_name,
+    rm.[reorder_level] AS main_reorder_level,
+    srm.[reorder_level] AS staging_reorder_level,
+    CASE
+        WHEN rm.[material_id] IS NULL THEN 'NEW IN STAGING'
+        WHEN srm.[material_id] IS NULL THEN 'MISSING IN STAGING'
+        WHEN rm.[reorder_level] = srm.[reorder_level] THEN 'SYNCED'
+        ELSE 'MISMATCH'
+    END AS reconciliation_status
+FROM [pup].[raw_materials] AS rm
+FULL OUTER JOIN [pup].[stg_raw_materials] AS srm
+    ON srm.[material_id] = rm.[material_id];

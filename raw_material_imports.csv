@@ -1,0 +1,6 @@
+material_id,material_name,unit_of_measurement,category,reorder_level,hazardous_flag
+11,Titanium Dioxide,KG,Pigment,600,0
+12,Acrylic Resin,KG,Binder,450,0
+13,Calcium Carbonate,KG,Filler,800,0
+14,Solvent A,L,Solvent,300,1
+15,Red Oxide,kg,Pigment,700,0
