@@ -686,3 +686,81 @@ EXCEPT
 
 SELECT [material_name], [material_id]
 FROM [pup].[stg_raw_materials];
+
+
+-------------------------------------------24/09/2026----------------------------------------------------------------------
+
+--1. Write an SQL query using CROSS APPLY with a table-valued function to retrieve each product_name from products alongside its single highest-priced variant from product_variants. Ensure products without any variants are excluded from the output.
+
+DROP FUNCTION [pup].[fn_HighestPricedVariant]
+
+CREATE FUNCTION [pup].[fn_HighestPricedVariant2]( @product_id INT )
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT TOP 1
+    [manufacturing_cost_mrp],[pup].[product_varient].varient_id
+    FROM [pup].[product_varient]
+    WHERE [product_id] = @product_id
+    ORDER BY manufacturing_cost_mrp DESC
+);
+
+SELECT p.[product_name], mrp.[manufacturing_cost_mrp],mrp.varient_id
+FROM [pup].[product] p
+cross apply 
+    [pup].[fn_HighestPricedVariant2] (p.[product_id]) as mrp
+
+--2
+SELECT
+    p.[product_name],
+    v.[sku_code] AS sku,
+    v.[manufacturing_cost_mrp] AS price
+FROM [pup].[product] p
+OUTER APPLY
+(
+    SELECT TOP 1
+        pv.[sku_code],
+        pv.[manufacturing_cost_mrp]
+    FROM [pup].[product_varient] pv
+    WHERE pv.[product_id] = p.[product_id]
+    ORDER BY pv.[manufacturing_cost_mrp] ASC
+) v;
+
+--3.
+ALTER TABLE [pup].[stg_raw_materials]
+ADD [tags] VARCHAR(200);
+
+UPDATE [pup].[stg_raw_materials]
+SET [tags] = 'Metal,Hazardous,Imported'
+WHERE [material_id] = 1;
+
+UPDATE [pup].[stg_raw_materials]
+SET [tags] = 'Pigment,Local,Organic'
+WHERE [material_id] = 2;
+
+UPDATE [pup].[stg_raw_materials]
+SET [tags] = 'Binder,Chemical,Imported'
+WHERE [material_id] = 3;
+
+UPDATE [pup].[stg_raw_materials]
+SET [tags] = 'Solvent,Hazardous,Industrial'
+WHERE [material_id] = 4;
+
+UPDATE [pup].[stg_raw_materials]
+SET [tags] = 'Additive,Local,NonToxic'
+WHERE [material_id] = 5;
+
+UPDATE [pup].[stg_raw_materials]
+SET [tags] = 'Colorant,Imported,Premium'
+WHERE [material_id] = 6;
+
+
+select * from [pup].[stg_raw_materials];
+
+sp_help '[pup].[stg_raw_materials]'
+
+select s.[material_name], tg.[value] as tag
+from [pup].[stg_raw_materials] as s
+cross apply 
+    string_split(s.[tags],',') as tg
