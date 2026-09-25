@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 SELECT TOP (1000) [formula_id]
       ,[product_id]
       ,[base_type]
@@ -67,3 +68,16 @@ VALUES
 (6,9,305.0000,'Grinding'),
 (11,3,255.0000,'Letting Down'),
 (6,4,775.0000,'Letting Down');
+=======
+SELECT TOP (1000) [material_id]
+      ,[material_name]
+      ,[material_type]
+      ,[unit_of_measure]
+      ,[reorder_level]
+      ,[hazardous_flag]
+  FROM [PaintUpdated].[pup].[raw_materials]
+
+update [pup].[raw_materials]
+set [reorder_level] = 550.00
+where [material_name] = 'Titanium Dioxide';
+>>>>>>> 1041d34 ( 29 sept done)

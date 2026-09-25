@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿------------------------------------------------------
 -- DAY 1
 ------------------------------------------------------
@@ -512,3 +513,19 @@ INTERSECT
 
 SELECT [stud_name], [department]
 FROM [hr].[ex_college_stud]; 
+=======
+SELECT TOP (1000) [varient_id]
+      ,[product_id]
+      ,[base_type]
+      ,[pack_size_lt]
+      ,[sku_code]
+      ,[unit_cost]
+      ,[manufacturing_cost_mrp]
+  FROM [PaintUpdated].[pup].[product_varient]
+  order by [product_id]
+
+
+  select [varient_id],[product_id],[manufacturing_cost_mrp] 
+  from [pup].[product_varient]
+  where [manufacturing_cost_mrp] = 6200;
+>>>>>>> 1041d34 ( 29 sept done)
