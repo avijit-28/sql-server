@@ -513,7 +513,7 @@ INTERSECT
 
 SELECT [stud_name], [department]
 FROM [hr].[ex_college_stud]; 
-=======
+
 SELECT TOP (1000) [varient_id]
       ,[product_id]
       ,[base_type]
@@ -529,3 +529,305 @@ SELECT TOP (1000) [varient_id]
   from [pup].[product_varient]
   where [manufacturing_cost_mrp] = 6200;
 >>>>>>> 1041d34 ( 29 sept done)
+=======
+
+-----------------------------------------------------------------------------------------------------------
+-- Day 8
+-----------------------------------------------------------------------------------------------------------
+--1. Display all authors and replace NULL phone numbers with 'No Phone'.
+
+SELECT author_name,
+ISNULL(phone, 'Not Avail')
+FROM hr.author;
+
+--2 Compare book_price with 750. Return NULL if equal.
+
+SELECT book_name, book_price,
+NULLIF(book_price,750)
+FROM hr.books;
+
+--3 Show author phone number. If phone is NULL, show 'Not Available
+SELECT author_name,phone,
+COALESCE(phone,'Unavailable') number
+FROM hr.author;
+
+--4 Create a table with an IDENTITY column and retrieve the generated ID after inserting one row.
+
+-- Create Table
+CREATE TABLE [hr].[test_student]
+(
+    student_id INT IDENTITY(1,1) PRIMARY KEY,
+    student_name VARCHAR(50)
+);
+select * from hr.test_student;
+
+-- Insert One Row
+INSERT INTO hr.test_student(student_name)
+VALUES ('Anoop');
+
+-- Retrieve Generated Identity Value
+SELECT SCOPE_IDENTITY() AS Generated_ID;
+
+select @@IDENTITY as G_Id;
+
+
+---
+INSERT INTO hr.test_student(student_name)
+VALUES ('Amit');
+
+DECLARE @NewID INT;
+SET @NewID = SCOPE_IDENTITY();
+SELECT @NewID AS Student_ID;
+
+
+--5. Display whether a book is expensive or affordable.
+
+SELECT
+    book_name,
+    book_price,
+    IIF(book_price >= 750, 'Expensive', 'Affordable') AS Category
+FROM hr.books;
+
+
+select TRIM('     sql      server     ') as trm;
+
+SELECT FORMAT(GETDATE(), 'dd/MM/yyyy', 'en-US') AS Result;
+
+SELECT DATEDIFF(DAY, '2026-09-01', '2026-09-25') AS DaysDiff;
+
+select NEWID() as guid; --generate always new id
+
+SELECT
+    book_name,
+    book_price,
+    ROW_NUMBER() OVER (ORDER BY book_price asc) AS RowNum
+FROM hr.books;
+
+SELECT
+    book_name,
+    book_price,
+    RANK() OVER (ORDER BY book_price asc) AS RankNo
+FROM hr.books;
+
+
+
+SELECT * FROM (
+SELECT product_id,product_name,brand_id,list_price, Dense_RANK () OVER ( 
+PARTITION BY brand_id
+ORDER BY list_price DESC
+) price_rank 
+FROM production.products
+) t
+WHERE price_rank <= 3;
+
+
+SELECT first_name, last_name, city,
+ROW_NUMBER() OVER (PARTITION BY city ORDER BY first_name ) row_num
+FROM sales.customers
+ORDER BY city;
+
+-----------------------------------------------------------------------------------------------------------------------
+-- DAY 9
+
+-- While Loop
+CREATE TABLE hr.SampleTable
+(Id INT, CountryName NVARCHAR(100), ReadStatus TINYINT)
+GO
+INSERT INTO hr.SampleTable ( Id, CountryName, ReadStatus)
+Values (1, 'Germany', 0),
+(2, 'France', 0),
+(3, 'Italy', 0),
+(4, 'Netherlands', 0) ,
+(5, 'Poland', 0)
+SELECT * FROM hr.SampleTable
+
+DECLARE @Counter INT , @MaxId INT, @ReadStatus TINYINT,
+@CountryName NVARCHAR(100)
+SELECT @Counter = min(Id) , @MaxId = max(Id), @ReadStatus=min(ReadStatus)
+FROM hr.SampleTable
+WHILE(@Counter IS NOT NULL
+AND @Counter <= @MaxId)
+BEGIN
+SELECT @CountryName = CountryName
+FROM hr.SampleTable WHERE Id = @Counter
+IF @ReadStatus = 1
+    UPDATE HR.SampleTable SET ReadStatus = 0 where @Counter=id
+    --PRINT CONVERT(VARCHAR,@Counter) + '. country name is ' + @CountryName+' ' + CONVERT(VARCHAR, @READSTATUS)
+    
+SET @Counter = @Counter + 1
+END
+
+declare @Count int, @Max_id int,@CountryNames NVARCHAR(100), @ReadSts tinyint
+select @Count = min(ID),@Max_id = max(ID),@ReadSts=min(ReadStatus) from hr.SampleTable
+while (@Count is not null and @Count<=@Max_Id)
+Begin
+SELECT @CountryNames = CountryName
+FROM hr.SampleTable WHERE Id = @Count
+PRINT CONVERT(VARCHAR,@Count) + '. country name is ' + @CountryNames+' and status is ' + CONVERT(VARCHAR, @Readsts)
+SET @Count = @Count + 1
+end
+
+----Loop and date 
+
+declare @s_date varchar(15), @EndDate date, @LoopDate Date,@StartDate Date
+set @s_date =format(GETDATE(),'dd/MM/yyyy','en-us')
+set @StartDate = GETDATE()
+set @EndDate = '2026/09/30'
+set @LoopDate = @StartDate
+
+select(SQL_VARIANT_PROPERTY(@EndDate, 'BaseType')  )
+
+
+print(type(@LoopDate))
+print(type(@EndDate))
+------------------------------------Assignment--------------------------------------------------------------
+---star printing
+declare @i int = 1
+while @i < 5
+begin 
+print REPLICATE('*',@i)
+set @i = @i +1
+end
+
+
+-- abc printing
+
+declare @x int = 0
+declare @save varchar(10)= ' '
+while @x <5 
+begin
+ set @save = @save + char(65 + @x)
+ print (@save)
+set @x= @x+1
+end
+
+----- prime or not 
+declare @num int= 136155417
+declare @c int = 2
+declare @Prime bit = 1;
+
+while @c < sqrt(@num)
+begin
+if @num % @c = 0
+    begin
+    set @prime = 0
+    break
+    end
+set @c = @c + 1
+end
+if @Prime = 0
+print(convert(varchar(10),@num)+' is not prime')
+else
+print(convert(varchar(10),@num)+' is prime')
+
+---------------------------------------
+
+-- Create Table
+CREATE TABLE hr.Students
+(
+    StudentName VARCHAR(100),
+    FatherName  VARCHAR(100)
+);
+
+-- Insert Data
+INSERT INTO hr.Students (StudentName, FatherName)
+VALUES
+('Rajiv Kumar', 'Arvind Kumar'),
+('Asish Roy', 'Ashim Roy'),
+('Bipin Gupta', 'Rajiv Gupta'),
+('Rajiv Kumar', 'Arvind Kumar'),
+('Sourav Patra', 'Asish Patra'),
+('Asish Roy', 'Ashim Roy');
+
+SELECT * FROM hr.Students
+--How to display the students from a student table having same student's name and father's name from below table:
+
+
+select StudentName, FatherName,count(*) as total from hr.Students
+group by StudentName,FatherName
+having count(StudentName) > 1
+
+--------------------------------------
+CREATE TABLE hr.employees
+(
+    employee_id INT PRIMARY KEY,
+    employee_name VARCHAR(50) NOT NULL,
+    job_title VARCHAR(50) NOT NULL,
+    manager_id INT NULL,
+    hired_date DATE,
+    FOREIGN KEY (manager_id)
+        REFERENCES hr.employees(employee_id)
+);
+
+INSERT INTO hr.employees
+VALUES
+(1, 'John',  'CEO',       NULL, '2020-01-01'),
+(2, 'David', 'Manager',   1,    '2021-02-15'),
+(3, 'Sarah', 'Manager',   1,    '2021-04-10'),
+(4, 'Mike',  'Developer', 2,    '2022-06-05'),
+(5, 'Lisa',  'Tester',    2,    '2022-07-01'),
+(6, 'Tom',   'Developer', 3,    '2023-01-15');
+
+INSERT INTO hr.employees
+VALUES
+(7, 'Rajiv', 'Developer',2, '2026-09-01'),
+(8, 'Asish', 'Tester',3, '2026-07-15'),
+(9, 'Bipin', 'Manager',1, '2026-03-10'),
+(10, 'Sourav', 'Developer',2, '2025-12-20');
+
+select * from hr.employees
+
+--5 Write a query to find employees hired in last n months.
+declare @nMonths int = 3
+select * from hr.employees 
+where hired_date >= DATEADD(Month, -@nMonths, GETDATE())
+
+--6
+
+SELECT
+    e.employee_name AS Employee,e.[job_title], ISNULL(m.employee_name, 'No Manager') AS ReportsTo
+FROM hr.employees e
+left join hr.employees m
+--inner join hr.employees m
+    ON e.manager_id = m.employee_id
+order by ReportsTo
+
+--7
+SELECT employee_name FROM hr.employees
+--where LEFT(employee_name,1) = 'S'
+where substring(employee_name,1,1)='S'
+
+--8
+ALTER TABLE hr.employees
+ADD salary DECIMAL(10,2);
+
+UPDATE hr.employees
+SET salary =
+    CASE employee_id
+        WHEN 1 THEN 200000
+        WHEN 2 THEN 120000
+        WHEN 3 THEN 120000
+        WHEN 4 THEN 80000
+        WHEN 5 THEN 70000
+        WHEN 6 THEN 85000
+        WHEN 7 THEN 90000
+        WHEN 8 THEN 75000
+        WHEN 9 THEN 130000
+        WHEN 10 THEN 95000
+    END;
+
+SELECT * FROM hr.employees
+
+--8
+--using offset and fetch
+select * from hr.employees
+order by salary desc
+offset 5 rows
+fetch next 1 rows only
+
+--
+select *
+from(
+select *,DENSE_RANK() over (order by salary desc) as sal_rank from hr.employees) as temp
+where temp.sal_rank = 6;
+>>>>>>> c9361d0 (assignment 2)
