@@ -974,7 +974,7 @@ select * from fn_GetStaffOrderSummary ('2016-01-01','2016-08-26');
 
 -- inline table-valued function 
 --3
-create function fn_GetStoreFulfilledOrders (@store_id  int, @max_processing_days int)
+alter function fn_GetStoreFulfilledOrders (@store_id  int, @max_processing_days int)
 returns table 
 as 
 return(
@@ -983,9 +983,10 @@ select [order_id],[customer_id],[order_date],[shipped_date],[store_id],
     from [sales].[orders]
     where @store_id = store_id and DATEDIFF(day,order_date,shipped_date) <= @max_processing_days 
     and shipped_date is not null
+    
 );
 
-select * from fn_GetStoreFulfilledOrders(1,3)
+select * from fn_GetStoreFulfilledOrders(1,2) 
 
 --4
 --drop function fn_GetCustomerDelayedOrders
@@ -997,3 +998,72 @@ select order_id from [sales].[orders]
 where (datediff(day,required_date,shipped_date) >=1 or shipped_date is null)  and customer_id = @customer_id  
 );
 select * from fn_GetCustomerDelayedOrders(91)
+
+-----------------------------------------------------------------------------------------------------------------------
+-- DAY 11
+CREATE TABLE hr.Customers
+(
+CustomerName VARCHAR(50),
+ProductName VARCHAR(50),
+Amount INT
+)
+
+INSERT INTO hr.Customers VALUES('James', 'Desktop', 25000)
+INSERT INTO hr.Customers VALUES('James', 'Laptop', 30000)
+INSERT INTO hr.Customers VALUES('David', 'Laptop', 25000)
+INSERT INTO hr.Customers VALUES('Smith', 'Desktop', 30000)
+INSERT INTO hr.Customers VALUES('Pam', 'Laptop', 45000)
+INSERT INTO hr.Customers VALUES('Pam', 'Laptop', 30000)
+INSERT INTO hr.Customers VALUES('John', 'Desktop', 30000)
+INSERT INTO hr.Customers VALUES('John', 'Desktop', 30000)
+INSERT INTO hr.Customers VALUES('John', 'Laptop', 30000)
+
+
+select CustomerName, Laptop, Desktop,PC
+from
+(select CustomerName, ProductName, Amount from hr.Customers 
+where Amount > (select Avg(Amount) from hr.Customers as sal) ) as PivotData
+pivot(
+sum(Amount) for ProductName in (laptop,Desktop,PC)) as PivotTable
+
+
+
+BEGIN TRY
+    BEGIN TRAN
+
+    INSERT INTO hr.Employee VALUES (25,'kaalu')
+    begin tran
+    update hr.Employee set [E_name] = 'nisuuuuu' where [E_id] = 8
+    begin tran
+    insert into hr.Department values(15,'accounts')
+    begin tran
+    insert into hr.Department values(16,'accounts')
+    COMMIT TRAN
+    -- Error here
+    --INSERT INTO hr.Employee VALUES (13,'Mike')
+    select @@trancount
+    
+END TRY
+BEGIN CATCH
+    IF (@@TRANCOUNT >= 0)
+        ROLLBACK TRAN
+END CATCH
+
+
+SELECT @@TRANCOUNT AS TranCount1;  -- 0
+
+BEGIN TRANSACTION;
+SELECT @@TRANCOUNT AS TranCount2;  -- 1
+
+BEGIN TRANSACTION;
+SELECT @@TRANCOUNT AS TranCount3;  -- 2
+
+BEGIN TRANSACTION;
+SELECT @@TRANCOUNT AS TranCount4;
+
+COMMIT;
+SELECT @@TRANCOUNT AS commit1;  -- 1
+--COMMIT;
+--SELECT @@TRANCOUNT AS commit2;
+rollback;
+SELECT @@TRANCOUNT AS rollback1;  -- 0
