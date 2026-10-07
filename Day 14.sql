@@ -54,11 +54,11 @@ END
 
 -- Insert,Update,Delete ---------------- 
 
-alter trigger tr_AllDMLOperationsOnEmployee ON hr.employees
+create trigger tr_AllDMLOperationsOnEmployee ON hr.employees
 FOR INSERT, UPDATE, DELETE
 AS
 BEGIN
-IF DATEPART(HH,GETDATE()) >= 13
+IF DATEPART(HH,GETDATE()) < 13
 BEGIN
 PRINT 'INVALID TIME'
 ROLLBACK TRANSACTION
@@ -95,6 +95,31 @@ SELECT * FROM DELETED
 END
 
 DELETE FROM hr.employees
-WHERE employee_id=13;
+WHERE employee_name= 'alpha';
 
 
+----
+
+CREATE TABLE hr.EmployeeAudit
+(
+ID INT IDENTITY(1,1) PRIMARY KEY,
+AuditData VARCHAR(MAX),
+AuditDate DATETIME
+)
+
+
+CREATE TRIGGER tr_Employee_For_Insert ON hr.employees
+FOR INSERT
+AS
+BEGIN-- Declare a variable to hold the ID Value
+DECLARE @ID INT-- Declare a variable to hold the Name value
+DECLARE @Name VARCHAR(100)-- Declare a variable to hold the Audit data
+DECLARE @AuditData VARCHAR(100)-- Get the ID and Name from the INSERTED Magic table
+SELECT @ID = employee_id, @Name = employee_name FROM INSERTED-- Set the AuditData to be stored in the EmployeeAudit table
+SET @AuditData = 'New employee Added with ID  = ' + Cast(@ID AS VARCHAR(10)) + ' and Name ' + @Name-- Insert the data into the EmployeeAudit table
+INSERT INTO hr.EmployeeAudit (AuditData, AuditDate) VALUES(@AuditData, GETDATE())
+END
+
+insert into hr.employees values (15,'Marcos','sd',5,'2022-10-01',96320)
+
+select * from  hr.EmployeeAudit
