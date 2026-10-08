@@ -94,7 +94,7 @@ function Invoke-AutoPush {
         }
     }
 
-    $changedItems = $changedItems | Select-Object -Unique
+    $changedItems = @($changedItems | Select-Object -Unique)
 
     if ($changedItems.Count -eq 0) {
         return
