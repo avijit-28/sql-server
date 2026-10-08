@@ -74,7 +74,7 @@ from  cte_total_net_revenue as t
 join cte_average_revenue as a 
 on t.order_id = a.order_id
 where t.total_net_revenue > a.average_net_revenue 
-group by t.order_id,total_net_revenue
+group by t.order_id,t.total_net_revenue;
 
 /* Problem 2: Category Rank of Most Discounted Line Items
 Scenario: Sales managers want to rank the individual items within each order based on the discount 
@@ -89,4 +89,17 @@ to assign a discount rank to each line item.
 
 Main Query: Select from the CTE to retrieve all order_id, item_id, product_id, discount, and net price 
 where the discount rank is 1 (the top discounted item(s) per order). */
+with cte_max_discount 
+as
+(
+select order_id,item_id, product_id, discount, 
+(quantity * list_price * (1 - discount)) as net_price, 
+DENSE_RANK() over(partition by order_id
+order by discount desc) as discount_rank
+from sales.order_items
+)
+select md.order_id, md.item_id, md.product_id,md.discount, md.net_price,md.discount_rank from cte_max_discount as md
+where md.discount_rank = 1;
+
+
 
