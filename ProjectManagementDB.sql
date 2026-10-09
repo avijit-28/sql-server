@@ -97,3 +97,5 @@ VALUES
  'Amit', '2026-10-11', '2026-10-15', 'Planned');
 
 
+ select * from dbo.Projects
+ select * from dbo.Tasks
