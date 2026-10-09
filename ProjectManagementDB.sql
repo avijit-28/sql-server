@@ -175,6 +175,34 @@ on t.ParentTaskId = ph.TaskId
 )
 select * from cte_ProjectHierchy;
 
+/* Find tasks that have no child tasks beneath them in the hierarchy.
+Example leaf tasks include Database Design, Develop API, and API Unit Testing.
+Return the project ID, task ID, task name, and status. A leaf task may still have dependencies on other tasks. */
+
+with cte_ProjectHierchy
+as
+(
+select TaskId
+    , TaskName
+    , ParentTaskId
+    --, DependsOnTaskId
+    , 0 as level 
+from Tasks
+where ParentTaskId IS not NULL
+
+union all
+
+select t.TaskId
+    , t.TaskName
+    , t.ParentTaskId
+    --, t.DependsOnTaskId
+    , ph.level +1
+from Tasks as t 
+join cte_ProjectHierchy as ph 
+on t.ParentTaskId = ph.TaskId
+)
+select * from cte_ProjectHierchy AS ct_ph
+
 
 
 
