@@ -99,3 +99,8 @@ VALUES
 
  select * from dbo.Projects
  select * from dbo.Tasks
+
+ /* Retrieve all subtasks under a parent task
+Given TaskId = 103 (Backend Development), retrieve all tasks and nested subtasks under it, regardless of depth. */
+
+
