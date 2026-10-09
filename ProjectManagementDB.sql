@@ -149,6 +149,22 @@ For ProjectId = 1, retrieve all tasks in parent-child order.
 Requirements:
 Show root tasks and their subtasks. Include a Level column. Display the hierarchy in a readable order */
 
+select * from dbo.Tasks as t where t.ProjectId =1 
+
+with cte_ProjectHierchy
+as
+(
+select TaskId
+    , TaskName
+    , ParentTaskId
+    , DependsOnTaskId
+    , 0 as level 
+from Tasks
+where ProjectId = 1
+
+)
+select * from cte_ProjectHierchy;
+
 
 
 
