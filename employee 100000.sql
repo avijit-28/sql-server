@@ -39,7 +39,9 @@ SELECT *
 FROM pup.Employee order by ID
 
 
-
+SELECT *
+FROM pup.Employee  WITH (NOLOCK) 
+order by ID ;
 
 BEGIN TRAN
 UPDATE pup.Employee
