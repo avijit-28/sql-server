@@ -51,10 +51,3 @@ WHERE ID = 1;
 rollback
 commit
 
-CREATE VIEW vwAllEmployees1
-AS
-SELECT *
-FROM Employee;
-
-SELECT *
-FROM vwAllEmployees1;
