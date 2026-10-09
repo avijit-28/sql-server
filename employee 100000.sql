@@ -33,3 +33,18 @@ SELECT
          ELSE 'Sales'
     END
 FROM Numbers;
+
+
+SELECT *
+FROM pup.Employee order by ID
+
+
+
+
+BEGIN TRAN
+UPDATE pup.Employee
+SET Salary = 95000
+WHERE ID = 1;
+
+rollback
+commit
