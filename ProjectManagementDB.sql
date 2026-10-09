@@ -157,13 +157,24 @@ as
 select TaskId
     , TaskName
     , ParentTaskId
-    , DependsOnTaskId
+    --, DependsOnTaskId
     , 0 as level 
 from Tasks
-where ProjectId = 1
+where ProjectId = 1 AND ParentTaskId IS NULL
 
+union all
+
+select t.TaskId
+    , t.TaskName
+    , t.ParentTaskId
+    --, t.DependsOnTaskId
+    , ph.level +1
+from Tasks as t 
+join cte_ProjectHierchy as ph 
+on t.ParentTaskId = ph.TaskId
 )
 select * from cte_ProjectHierchy;
+
 
 
 
