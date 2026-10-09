@@ -59,3 +59,4 @@ FROM EmployeesCTE EmpCTE
  left JOIN EmployeesCTE MgrCTE
     ON EmpCTE.manager_id = MgrCTE.employee_id
 ORDER BY EmpCTE.[Level], EmpCTE.employee_name;
+
