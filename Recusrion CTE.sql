@@ -31,7 +31,6 @@ WITH EmployeesCTE
 )
 AS
 (
-    -- Anchor Member
     SELECT
         employee_id,
         employee_name,
@@ -42,7 +41,6 @@ AS
 
     UNION ALL
 
-    -- Recursive Member
     SELECT
         e.employee_id,
         e.employee_name,
