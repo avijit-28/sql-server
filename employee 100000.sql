@@ -13,7 +13,7 @@ SELECT  [ID]
     FROM sys.all_objects a
     CROSS JOIN sys.all_objects b
 )
-INSERT INTO Employee (ID, Name, Salary, Gender, City, Dept)
+INSERT INTO pup.Employee (ID, Name, Salary, Gender, City, Dept)
 SELECT
     ID,
     'Emp' + CAST(ID AS VARCHAR(10)),
@@ -50,3 +50,11 @@ WHERE ID = 1;
 
 rollback
 commit
+
+CREATE VIEW vwAllEmployees1
+AS
+SELECT *
+FROM Employee;
+
+SELECT *
+FROM vwAllEmployees1;
