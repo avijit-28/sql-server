@@ -1,0 +1,209 @@
+CREATE DATABASE ProjectManagementDB;
+GO
+
+USE ProjectManagementDB;
+GO
+
+CREATE TABLE Projects
+(
+    ProjectId INT PRIMARY KEY,
+    ProjectName VARCHAR(100) NOT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NULL,
+    Status VARCHAR(20) NOT NULL
+        DEFAULT 'Planned',
+
+    CHECK (EndDate IS NULL OR EndDate >= StartDate)
+);
+GO
+
+CREATE TABLE Tasks
+(
+    TaskId INT PRIMARY KEY,
+    ProjectId INT NOT NULL,
+    TaskName VARCHAR(150) NOT NULL,
+
+    ParentTaskId INT NULL,
+    DependsOnTaskId INT NULL,
+
+    AssignedTo VARCHAR(100) NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NULL,
+    Status VARCHAR(20) NOT NULL
+        DEFAULT 'Pending',
+
+    FOREIGN KEY (ProjectId)
+        REFERENCES Projects(ProjectId),
+
+    FOREIGN KEY (ParentTaskId)
+        REFERENCES Tasks(TaskId),
+
+    FOREIGN KEY (DependsOnTaskId)
+        REFERENCES Tasks(TaskId),
+
+    CHECK (ParentTaskId IS NULL
+           OR ParentTaskId <> TaskId),
+
+    CHECK (DependsOnTaskId IS NULL
+           OR DependsOnTaskId <> TaskId),
+
+    CHECK (EndDate IS NULL OR EndDate >= StartDate)
+);
+
+INSERT INTO Projects
+    (ProjectId, ProjectName, StartDate, EndDate, Status)
+VALUES
+    (1, 'E-Commerce Application',
+        '2026-10-01', '2026-12-31', 'In Progress'),
+
+    (2, 'Employee Management System',
+        '2026-10-05', '2027-01-31', 'Planned');
+
+        INSERT INTO Tasks
+    (TaskId, ProjectId, TaskName, ParentTaskId,
+     DependsOnTaskId, AssignedTo, StartDate, EndDate, Status)
+VALUES
+-- Project 1: top-level tasks
+(101, 1, 'Requirement Analysis', NULL, NULL,
+ 'Rahul', '2026-10-01', '2026-10-05', 'Completed'),
+
+(102, 1, 'System Design', NULL, 101,
+ 'Amit', '2026-10-06', '2026-10-12', 'Completed'),
+
+(103, 1, 'Backend Development', NULL, 102,
+ 'Priya', '2026-10-13', '2026-10-25', 'In Progress'),
+
+(104, 1, 'Frontend Development', NULL, 102,
+ 'Neha', '2026-10-13', '2026-10-27', 'In Progress'),
+
+(105, 1, 'Testing', NULL, 103,
+ 'Rohit', '2026-10-28', '2026-11-05', 'Pending'),
+
+-- Subtasks of Backend Development
+(106, 1, 'Database Design', 103, NULL,
+ 'Amit', '2026-10-13', '2026-10-16', 'Completed'),
+
+(107, 1, 'Develop API', 103, 106,
+ 'Priya', '2026-10-17', '2026-10-23', 'In Progress'),
+
+(108, 1, 'API Unit Testing', 103, 107,
+ 'Rohit', '2026-10-24', '2026-10-25', 'Pending'),
+
+-- Project 2
+(201, 2, 'Gather Employee Requirements', NULL, NULL,
+ 'Sneha', '2026-10-05', '2026-10-10', 'Planned'),
+
+(202, 2, 'Design Employee Database', NULL, 201,
+ 'Amit', '2026-10-11', '2026-10-15', 'Planned');
+
+
+ select * from dbo.Projects
+ select * from dbo.Tasks;
+
+ /* Retrieve all subtasks under a parent task
+Given TaskId = 103 (Backend Development), retrieve all tasks and nested subtasks under it, regardless of depth. */
+
+with cte_dependTask 
+as 
+(
+select p.TaskId
+    ,p.TaskName
+    ,p.ParentTaskId
+    ,p.DependsOnTaskId
+    ,0 as level
+from Tasks as p
+where p.TaskId = 103
+
+union all
+
+select t.TaskId
+    ,t.TaskName
+    ,t.ParentTaskId
+    ,t.DependsOnTaskId
+    , dt.level + 1
+from Tasks as t
+join cte_dependTask as dt
+on t.ParentTaskId = dt.TaskId
+)
+select * from cte_dependTask;
+
+-- or ----
+
+with cte_dependTask 
+as 
+(
+select *
+/*p.TaskId
+    ,p.TaskName
+    ,p.ParentTaskId
+    ,p.DependsOnTaskId*/
+    
+from Tasks as p
+where p.ParentTaskId = 103 or p.DependsOnTaskId = 103 or p.TaskId = 103
+)
+select * from cte_dependTask;
+
+
+/* Display the complete task hierarchy of a project
+For ProjectId = 1, retrieve all tasks in parent-child order.
+Requirements:
+Show root tasks and their subtasks. Include a Level column. Display the hierarchy in a readable order */
+
+select * from dbo.Tasks as t where t.ProjectId =1 
+
+with cte_ProjectHierchy
+as
+(
+select TaskId
+    , TaskName
+    , ParentTaskId
+    --, DependsOnTaskId
+    , 0 as level 
+from Tasks
+where ProjectId = 1 AND ParentTaskId IS NULL
+
+union all
+
+select t.TaskId
+    , t.TaskName
+    , t.ParentTaskId
+    --, t.DependsOnTaskId
+    , ph.level +1
+from Tasks as t 
+join cte_ProjectHierchy as ph 
+on t.ParentTaskId = ph.TaskId
+)
+select * from cte_ProjectHierchy;
+
+/* Find tasks that have no child tasks beneath them in the hierarchy.
+Example leaf tasks include Database Design, Develop API, and API Unit Testing.
+Return the project ID, task ID, task name, and status. A leaf task may still have dependencies on other tasks. */
+
+with cte_ProjectHierchy
+as
+(
+select TaskId
+    , TaskName
+    , ParentTaskId
+    --, DependsOnTaskId
+    , 0 as level 
+from Tasks
+where ParentTaskId IS not NULL
+
+union all
+
+select t.TaskId
+    , t.TaskName
+    , t.ParentTaskId
+    --, t.DependsOnTaskId
+    , ph.level +1
+from Tasks as t 
+join cte_ProjectHierchy as ph 
+on t.ParentTaskId = ph.TaskId
+)
+select * from cte_ProjectHierchy AS ct_ph
+
+
+
+
+
