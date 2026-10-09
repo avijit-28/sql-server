@@ -98,9 +98,57 @@ VALUES
 
 
  select * from dbo.Projects
- select * from dbo.Tasks
+ select * from dbo.Tasks;
 
  /* Retrieve all subtasks under a parent task
 Given TaskId = 103 (Backend Development), retrieve all tasks and nested subtasks under it, regardless of depth. */
+
+with cte_dependTask 
+as 
+(
+select p.TaskId
+    ,p.TaskName
+    ,p.ParentTaskId
+    ,p.DependsOnTaskId
+    ,0 as level
+from Tasks as p
+where p.TaskId = 103
+
+union all
+
+select t.TaskId
+    ,t.TaskName
+    ,t.ParentTaskId
+    ,t.DependsOnTaskId
+    , dt.level + 1
+from Tasks as t
+join cte_dependTask as dt
+on t.ParentTaskId = dt.TaskId
+)
+select * from cte_dependTask;
+
+-- or ----
+
+with cte_dependTask 
+as 
+(
+select *
+/*p.TaskId
+    ,p.TaskName
+    ,p.ParentTaskId
+    ,p.DependsOnTaskId*/
+    
+from Tasks as p
+where p.ParentTaskId = 103 or p.DependsOnTaskId = 103 or p.TaskId = 103
+)
+select * from cte_dependTask;
+
+
+/* Display the complete task hierarchy of a project
+For ProjectId = 1, retrieve all tasks in parent-child order.
+Requirements:
+Show root tasks and their subtasks. Include a Level column. Display the hierarchy in a readable order */
+
+
 
 
