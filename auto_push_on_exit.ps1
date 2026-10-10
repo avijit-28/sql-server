@@ -113,7 +113,7 @@ function Get-WorkHintFromDiff {
     }
 
     if ($hints.Count -gt 0) {
-        return ($hints | Select-Object -Unique -First 1)[0]
+        return [string]($hints | Select-Object -Unique -First 1)
     }
     return ""
 }
