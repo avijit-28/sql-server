@@ -1,0 +1,10 @@
+## SQL Server & Editor .gitignore
+*.tmp
+*.bak
+*.swp
+*~
+Thumbs.db
+.vs/
+.vscode/
+*.suo
+*.user
