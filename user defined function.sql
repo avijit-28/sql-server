@@ -58,3 +58,22 @@ VALUES
 --select * from @emp
 exec USP_Insert_Employee_Infi @emp 
 select * from pup.Employee
+
+----------------------------------------------------
+CREATE TYPE TypeName FROM VARCHAR(100);
+CREATE TYPE TypeAge FROM INT;
+CREATE TYPE TypeLocation FROM VARCHAR(500);
+
+DECLARE @Name TypeName,
+        @Age TypeAge,
+        @Location TypeLocation;
+
+SET @Name = 'Avijit';
+SET @Age = 25;
+SET @Location = 'Kolkata';
+
+SELECT @Name name, @Age age, @Location location;
+
+SELECT name, system_type_id
+FROM sys.types
+WHERE is_user_defined = 1;
