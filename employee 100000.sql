@@ -1,19 +1,21 @@
+create table Employee (ID int primary key, Name varchar(30), Salary int, Gender varchar(10), City varchar(50),Dept varchar(50))
+
 SELECT  [ID]
       ,[Name]
       ,[Salary]
       ,[Gender]
       ,[City]
       ,[Dept]
-  FROM [PaintUpdated].[pup].[Employee]
+  FROM [Employee];
 
   WITH Numbers AS
 (
-    SELECT TOP 10000
+    SELECT TOP 100
            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS ID
     FROM sys.all_objects a
     CROSS JOIN sys.all_objects b
 )
-INSERT INTO pup.Employee (ID, Name, Salary, Gender, City, Dept)
+INSERT INTO Employee (ID, Name, Salary, Gender, City, Dept)
 SELECT
     ID,
     'Emp' + CAST(ID AS VARCHAR(10)),
@@ -36,7 +38,7 @@ FROM Numbers;
 
 
 SELECT *
-FROM pup.Employee order by ID
+FROM Employee order by ID
 
 
 SELECT *
@@ -51,3 +53,4 @@ WHERE ID = 1;
 rollback
 commit
 
+drop table Employee
