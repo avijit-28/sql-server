@@ -1,0 +1,9 @@
+CREATE TABLE Expenses (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeName NVARCHAR(150) NOT NULL,
+    Category NVARCHAR(100) NOT NULL,
+    Amount DECIMAL(18, 2) NOT NULL,
+    ExpenseDate DATETIME2 NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
+    HasReceipt BIT NOT NULL DEFAULT 0
+);
