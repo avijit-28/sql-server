@@ -91,3 +91,33 @@ BEGIN
     DELETE FROM UserDetails
     WHERE UserId = @UserId;
 END
+
+
+-- paging
+Create proc spGetUsers_by_PageIndex_and_PageSize
+@PageIndex int,  
+@PageSize int,
+@TotalRows int output
+as  
+Begin  
+Declare @StartRowIndex int 
+Declare @EndRowIndex int
+Set @StartRowIndex = (@PageIndex * @PageSize) + 1;
+Set @EndRowIndex = (@PageIndex + 1) * @PageSize;
+Select[UserId]
+      ,[UserName]
+      ,[Password]
+      ,[Email]
+      ,[MobileNo]
+      ,[City]
+      from  
+(Select ROW_NUMBER() over (order by [UserId]) as RowNumber,[UserId]
+      ,[UserName]
+      ,[Password]
+      ,[Email]
+      ,[MobileNo]
+      ,[City]  
+from [Assignmet].[dbo].[UserDetails]) Users  
+Where RowNumber >= @StartRowIndex and RowNumber <= @EndRowIndex
+Select @TotalRows = COUNT(*) from [Assignmet].[dbo].[UserDetails]
+End
