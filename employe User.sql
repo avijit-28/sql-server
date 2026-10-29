@@ -37,3 +37,31 @@ VALUES
     ('akash119', 'Akash Gupta', 'Employee', '9876543229', 'akash@gmail.com');
 
 
+    ALTER TABLE EmployeeUser
+ADD Password NVARCHAR(255) NOT NULL
+    CONSTRAINT DF_EmployeeUser_Password DEFAULT 'Welcome@123';
+
+    UPDATE EmployeeUser
+SET Password = CASE ID
+    WHEN 1  THEN 'Avijit@123'
+    WHEN 2  THEN 'Rahul@123'
+    WHEN 3  THEN 'Priya@123'
+    WHEN 4  THEN 'Amit@123'
+    WHEN 5  THEN 'Sneha@123'
+    WHEN 6  THEN 'Arjun@123'
+    WHEN 7  THEN 'Neha@123'
+    WHEN 8  THEN 'Rohit@123'
+    WHEN 9  THEN 'Ankita@123'
+    WHEN 10 THEN 'Vikas@123'
+    WHEN 11 THEN 'Pooja@123'
+    WHEN 12 THEN 'Karan@123'
+    WHEN 13 THEN 'Riya@123'
+    WHEN 14 THEN 'Saurav@123'
+    WHEN 15 THEN 'Tanya@123'
+    WHEN 16 THEN 'Manish@123'
+    WHEN 17 THEN 'Swati@123'
+    WHEN 18 THEN 'Deepak@123'
+    WHEN 19 THEN 'Megha@123'
+    WHEN 20 THEN 'Akash@123'
+END;
+GO
