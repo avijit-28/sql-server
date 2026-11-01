@@ -2166,5 +2166,57 @@ GO
 
 
 /* ============================================================
+   58. ASPNETUSERS APPROVAL COLUMNS & SEED DATA UPDATE
+   ============================================================ */
+
+IF OBJECT_ID('dbo.AspNetUsers', 'U') IS NOT NULL
+BEGIN
+    IF COL_LENGTH('dbo.AspNetUsers', 'IsApproved') IS NULL
+    BEGIN
+        ALTER TABLE dbo.AspNetUsers ADD IsApproved BIT NOT NULL CONSTRAINT DF_AspNetUsers_IsApproved DEFAULT 0;
+    END
+
+    IF COL_LENGTH('dbo.AspNetUsers', 'ApprovalStatus') IS NULL
+    BEGIN
+        ALTER TABLE dbo.AspNetUsers ADD ApprovalStatus NVARCHAR(50) NOT NULL CONSTRAINT DF_AspNetUsers_ApprovalStatus DEFAULT 'Pending';
+    END
+
+    IF COL_LENGTH('dbo.AspNetUsers', 'RequestedRole') IS NULL
+    BEGIN
+        ALTER TABLE dbo.AspNetUsers ADD RequestedRole NVARCHAR(50) NULL;
+    END
+
+    IF COL_LENGTH('dbo.AspNetUsers', 'RejectionReason') IS NULL
+    BEGIN
+        ALTER TABLE dbo.AspNetUsers ADD RejectionReason NVARCHAR(500) NULL;
+    END
+
+    IF COL_LENGTH('dbo.AspNetUsers', 'RegisteredDate') IS NULL
+    BEGIN
+        ALTER TABLE dbo.AspNetUsers ADD RegisteredDate DATETIME2 NOT NULL CONSTRAINT DF_AspNetUsers_RegisteredDate DEFAULT GETDATE();
+    END
+END
+GO
+
+IF OBJECT_ID('dbo.AspNetUsers', 'U') IS NOT NULL
+BEGIN
+    -- Ensure existing seeded accounts are marked as approved
+    UPDATE dbo.AspNetUsers
+    SET IsApproved = 1, ApprovalStatus = 'Approved'
+    WHERE Email IN ('admin@lms.com', 'instructor@lms.com', 'student@lms.com');
+
+    UPDATE dbo.AspNetUsers
+    SET RequestedRole = 'Admin' WHERE Email = 'admin@lms.com' AND (RequestedRole IS NULL OR RequestedRole = '');
+
+    UPDATE dbo.AspNetUsers
+    SET RequestedRole = 'Instructor' WHERE Email = 'instructor@lms.com' AND (RequestedRole IS NULL OR RequestedRole = '');
+
+    UPDATE dbo.AspNetUsers
+    SET RequestedRole = 'Student' WHERE Email = 'student@lms.com' AND (RequestedRole IS NULL OR RequestedRole = '');
+END
+GO
+
+
+/* ============================================================
    END OF LMS DATABASE SCRIPT
    ============================================================ */
