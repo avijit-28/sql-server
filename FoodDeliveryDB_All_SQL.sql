@@ -14,13 +14,6 @@
  DATABASE:
      FoodArrivalDB
 
- TABLES:
-     Customers
-     Admins
-     FoodItems
-     Orders
-     OrderDetails
-
  NOTE:
      Application passwords should be securely hashed in C#.
      PasswordHash columns are used here so plain-text passwords
