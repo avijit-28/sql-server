@@ -198,44 +198,4 @@ BEGIN
 END;
 GO
 
---------------------------------------------------------------------------------
--- 4. INLINE ADO.NET SQL QUERIES (Used directly in C# CustomerRepository.cs)
---------------------------------------------------------------------------------
 
-/*
---- QUERY A: Cross-Role Duplicate Check on Registration ---
-SELECT 'Username already taken' AS Reason FROM dbo.Customers WHERE LOWER(Username) = @Username
-UNION ALL
-SELECT 'Email already registered' FROM dbo.Customers WHERE LOWER(Email) = @Email
-UNION ALL
-SELECT 'Username already taken' FROM dbo.Restaurants WHERE LOWER(Username) = @Username
-UNION ALL
-SELECT 'Email already registered' FROM dbo.Restaurants WHERE LOWER(Email) = @Email
-UNION ALL
-SELECT 'Username already taken' FROM dbo.Riders WHERE LOWER(Username) = @Username
-UNION ALL
-SELECT 'Email already registered' FROM dbo.Riders WHERE LOWER(Email) = @Email
-UNION ALL
-SELECT 'Username already taken' FROM dbo.RestaurantStaff WHERE LOWER(Username) = @Username
-UNION ALL
-SELECT 'Email already registered' FROM dbo.RestaurantStaff WHERE LOWER(Email) = @Email
-UNION ALL
-SELECT 'Username already taken' FROM dbo.Admins WHERE LOWER(Username) = @Username;
-
---- QUERY B: Register Customer with Username Support ---
-INSERT INTO dbo.Customers (CustomerName, Username, Email, PasswordHash, PhoneNumber, Address)
-VALUES (@CustomerName, @Username, @Email, @PasswordHash, @PhoneNumber, @Address);
-SELECT CAST(SCOPE_IDENTITY() AS INT);
-
---- QUERY C: Unified Login by Username OR Email ---
-SELECT CustomerId, CustomerName, Username, Email, PhoneNumber, Address, PasswordHash, IsActive
-FROM dbo.Customers
-WHERE (LOWER(Email) = @LoginId OR LOWER(Username) = @LoginId)
-  AND IsActive = 1;
-
---- QUERY D: Password Reset / Change ---
-UPDATE dbo.Customers 
-SET PasswordHash = @Password 
-WHERE CustomerId = @CustomerId;
-*/
-GO
