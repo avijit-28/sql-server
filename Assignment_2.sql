@@ -278,7 +278,7 @@ ORDER BY d.DealerID, doc.DealerOrderSeq;
 		RETURN;
 	END;
 	
-
+	use PaintDB;
 	SELECT * 
 	FROM udf_GetDealerSalesSUMmary()
 
