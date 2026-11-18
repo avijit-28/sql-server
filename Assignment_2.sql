@@ -103,7 +103,7 @@ WHERE e.Salary > ALL (
 	GROUP BY e.Dept 
 	)ORDER BY e.Dept;
 
-/* 6. ASsign a rank to each movie bASed ON the ordering of their releASe dates. */
+/* 6. Assign a rank to each movie bASed ON the ordering of their releASe dates. */
 	
 	USE Assignmet;
 	SELECT MovieID
@@ -113,7 +113,7 @@ WHERE e.Salary > ALL (
 	  ,DENSE_RANK() over(ORDER BY ReleASeDate) AS MovieRank
 	FROM [dbo].[Movies]
 
-/* 7. Retrieve informatiON about each book alONg with its author, publisher, and  
+/* 7. Retrieve informatiON about each book along with its author, publisher, and  
 		genre details using apply operator.      */
 
 	USE Assignmet;
@@ -121,9 +121,9 @@ WHERE e.Salary > ALL (
 		 b.BookID
 		,b.BookTitle
 		,b.Price
-		,ISNULL(a.AuthorName, '--- No Author ---') AS Author
-		,ISNULL(p.PublisherName, '--- Self-Published ---') AS Publisher
-		,ISNULL(g.GenreName, '--- General ---') AS Genre
+		,ISNULL(a.AuthorName, ' No Author ') AS Author
+		,ISNULL(p.PublisherName, ' Self-Published ') AS Publisher
+		,ISNULL(g.GenreName, ' General ') AS Genre
 	FROM [dbo].[Books] AS b
 	OUTER APPLY (
 		SELECT AuthorName 
@@ -174,19 +174,19 @@ WHERE e.Salary > ALL (
 		USE Hospital;
 		SELECT 
 			count(p.patient_id) AS Total_patients
-			,count(a.appoINTment_id) AS Total_appoINTments
+			,count(a.appointment_id) AS Total_appointments
 			,dp.department_name
 			,a.status
-			,MONTH(a.appoINTment_date)
+			,MONTH(a.appointment_date)
 		FROM
 			[hpl].[Patients] p 
-			INNER JOIN [hpl].[AppoINTments] a
+			INNER JOIN [hpl].[Appointments] a
 			ON a.patient_id = p.patient_id
 			INNER JOIN [hpl].[Doctors] dc
 			ON a.doctor_id = dc.doctor_id
 			INNER JOIN [hpl].[Departments] dp
 			ON dp.department_id = dc.department_id
-		GROUP BY MONTH(a.appoINTment_date),dp.department_name,a.status
+		GROUP BY MONTH(a.appointment_date),dp.department_name,a.status
 			
 /* 10. Generate a report that displays Dealer phONe numbers mASked, showing ONly the lASt 4 digits, 
 		WHILE replacing the remaining digits with X. FROM the IssueDescriptiON in the ComplaINT table, 
@@ -203,7 +203,7 @@ WHERE e.Salary > ALL (
 
 
 /* 11. For each Dealer, list all their sales orders and ASsign a unique sequential order number bASed 
-		ON OrderDATE(oldest first).  Rank paINTs bASed ON total sales amount, such that paINTs with 
+		ON OrderDATE(oldest first).  Rank paints bASed ON total sales amount, such that paints with 
 		the same total sales receive the same rank, and ranking numbers are cONtinuous.   */
 		
 		USE PaINTDB;
@@ -218,18 +218,18 @@ WHERE e.Salary > ALL (
 				) AS DealerOrderSeq
 			FROM [dbo].[Orders] o
 		),
-		PaINTSales_CTE AS (
+		PaintSales_CTE AS (
     SELECT 
-        p.PaINTID,
-        p.PaINTName,
-        SUM(oi.SaleAmount) AS TotalPaINTSales,
+        p.PaintID,
+        p.PaintName,
+        SUM(oi.SaleAmount) AS TotalPaintSales,
         DENSE_RANK() OVER (
             ORDER BY SUM(oi.SaleAmount) DESC
-        ) AS PaINTRank
-    FROM [dbo].[PaINTs] AS p
+        ) AS PaintRank
+    FROM [dbo].[Paints] AS p
 	INNER JOIN [dbo].[OrderItems] AS oi
-	ON p.PaINTID = oi.PaINTID
-	GROUP BY p.PaINTID, p.PaINTName
+	ON p.PaintID = oi.PaintID
+	GROUP BY p.PaintID, p.PaintName
 )
 
 SELECT 
@@ -238,22 +238,22 @@ SELECT
     o.OrderID,
     o.OrderDate,
     doc.DealerOrderSeq,
-    p.PaINTName,
+    p.PaintName,
     oi.SaleAmount,
-    psc.TotalPaINTSales,
-    psc.PaINTRank
+    psc.TotalPaintSales,
+    psc.PaintRank
 FROM [dbo].[Orders] o
 INNER JOIN [dbo].[Dealers] d           ON o.DealerID = d.DealerID
 INNER JOIN DealerOrders_CTE doc    ON o.OrderID = doc.OrderID
 INNER JOIN [dbo].[OrderItems] oi       ON o.OrderID = oi.OrderID
-INNER JOIN [dbo].[Paints] p            ON oi.PaINTID = p.PaINTID
-INNER JOIN PaintSales_CTE psc      ON p.PaINTID = psc.PaINTID
+INNER JOIN [dbo].[Paints] p            ON oi.PaintID = p.PaintID
+INNER JOIN PaintSales_CTE psc      ON p.PaintID = psc.PaintID
 ORDER BY d.DealerID, doc.DealerOrderSeq;
 			
 
 /* 12. Create a multi-statement table-valued functiON that returns a dealer-wise sales SUMmary, 
 		including: DealerID, DealerName,Total Orders,Total Sales Amount. The functiON should calculate 
-		values INTernally and return them AS a table.  */
+		values internally and return them AS a table.  */
 		
 		
 		CREATE FUNCTION udf_GetDealerSalesSUMmary()
