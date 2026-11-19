@@ -225,3 +225,47 @@ SELECT *
 FROM dbo.SalesTransactions
 WHERE CustomerID = 101
 ;
+
+
+
+IF OBJECT_ID('dbo.Bookings', 'U')   IS NOT NULL DROP TABLE dbo.Bookings;
+IF OBJECT_ID('dbo.Passengers', 'U') IS NOT NULL DROP TABLE dbo.Passengers;
+GO
+
+-- 1. Passengers Table
+CREATE TABLE dbo.Passengers (
+    PassengerID INT PRIMARY KEY IDENTITY(1,1),
+    PassengerName VARCHAR(100) NOT NULL,
+    Email VARCHAR(100),
+    PhoneNumber VARCHAR(20)
+);
+
+-- 2. Bookings Table
+CREATE TABLE dbo.Bookings (
+    BookingID INT PRIMARY KEY IDENTITY(101,1),
+    PassengerID INT NOT NULL,
+    FlightNumber VARCHAR(20) NOT NULL,
+    Destination VARCHAR(50) NOT NULL,
+    BookingDate DATE NOT NULL,
+    TicketAmount DECIMAL(10,2) NOT NULL,
+    BookingStatus VARCHAR(20) DEFAULT 'Confirmed',
+    CONSTRAINT FK_Bookings_Passenger FOREIGN KEY (PassengerID) REFERENCES dbo.Passengers(PassengerID)
+);
+GO
+
+-- Insert Sample Passengers
+INSERT INTO dbo.Passengers (PassengerName, Email, PhoneNumber)
+VALUES 
+    ('Avijit Pakhira', 'avijit@example.com', '9876543210'),
+    ('Rahul Sharma',  'rahul@example.com',  '9123456780'),
+    ('Priya Sen',     'priya@example.com',  '9988776655');
+
+-- Insert Sample Bookings (Avijit has 3 bookings, Rahul has 2, Priya has 0)
+INSERT INTO dbo.Bookings (PassengerID, FlightNumber, Destination, BookingDate, TicketAmount, BookingStatus)
+VALUES
+    (1, 'AI-202', 'Delhi',     '2026-09-10', 4500.00, 'Completed'),
+    (1, '6E-405', 'Mumbai',    '2026-10-15', 5800.00, 'Completed'),
+    (1, 'UK-811', 'Bangalore', '2026-11-25', 6200.00, 'Confirmed'),
+    (2, 'SG-301', 'Goa',       '2026-10-02', 3900.00, 'Completed'),
+    (2, 'AI-505', 'Kolkata',   '2026-11-12', 4200.00, 'Confirmed');
+GO
