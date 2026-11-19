@@ -4,7 +4,7 @@
 		DescriptiON : ASsignment 2 
 =======================================================*/
 
-/* 1. Write a query to fetch each customer's name, lASt order DATEalONg with 
+/* 1. Write a query to fetch each customer's name, lASt order date alongg with 
 		the total value of orders they have placed using inline sub query. */
 		USE BikeStores
 
@@ -67,8 +67,8 @@ SELECT
 	 Name
 	,Salary
 	,Dept
-FROM (
-	SELECT
+     FROM (
+		 SELECT
 		 Name
 		,Salary
 		,Dept
@@ -76,7 +76,7 @@ FROM (
 	PARTITION BY Dept 
 	ORDER BY Salary desc
 	)) AS SalaryRank
-	FROM [dbo].[Employee]) AS RankedSalary
+FROM [dbo].[Employee]) AS RankedSalary
 WHERE SalaryRank = 3
 
 /* 5. Write a query by using ANY & ALL operator? */
@@ -177,7 +177,7 @@ WHERE e.Salary > ALL (
 			,count(a.appointment_id) AS Total_appointments
 			,dp.department_name
 			,a.status
-			,MONTH(a.appointment_date)
+			,MONTH(a.appointment_date) as month
 		FROM
 			[hpl].[Patients] p 
 			INNER JOIN [hpl].[Appointments] a
@@ -196,7 +196,7 @@ WHERE e.Salary > ALL (
 		SELECT 
 			d.DealerName
 			,CONCAT(REPLICATE('X', 6), RIGHT(d.PhoneNumber, 4)) AS PhoneNumber
-			,LEFT(c.IssueDescriptiON,20) AS IssueDescriptiON
+			,LEFT(c.IssueDescriptiON,20) AS IssueDescription
 		FROM [dbo].[Dealers] AS d
 		INNER JOIN [dbo].[Complaints] AS c
 		ON d.DealerID = c.DealerID
@@ -214,7 +214,7 @@ WHERE e.Salary > ALL (
 				o.OrderDate,
 				ROW_NUMBER() over(
 					PARTITION BY o.DealerID
-					ORDER BY o.OrderDATEASC
+					ORDER BY o.OrderDATE ASC
 				) AS DealerOrderSeq
 			FROM [dbo].[Orders] o
 		),
