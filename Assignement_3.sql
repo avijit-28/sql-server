@@ -308,7 +308,7 @@ SELECT * FROM dbo.Stock WHERE ProductID = 1;
     FROM [dbo].[SalesTransactions]
     WHERE CustomerID = 101;
 
-    SELECT SalesID, CustomerID, ProductID, SalesDate, TotalAmount
+    
+    SELECT ProductID, SalesDate 
     FROM [dbo].[SalesTransactions]
-    WHERE ProductID = 501 AND SalesDate >= '2026-11-01';
-                                
+    WHERE ProductID = 501 AND SalesDate >= '2026-11-02';
