@@ -20,6 +20,14 @@
                     O 
                     N 
                     E                                                                                       */
+ DECLARE @str VARCHAR(20) = 'CAPONE'
+ DECLARE @i INT = 1;
+ while @i <= LEN(@str)
+ BEGIN
+    PRINT SUBSTRING(@str,@i,1)
+    set @i = @i +1;
+END;
+
 
 /* 3. Let us have a table with the following data:                                                                                                
  
@@ -31,8 +39,12 @@
     5                 WCF 
     We need to concatenate the Course Name column like the following: 
     .Net, SQL Server, SSRS, SharePoint, WCF                                                                     */
-
-
+    use BikeStores
+    Declare @CourseList Varchar(Max) = '';
+    select @CourseList = @CourseList + [CourseName] + ', '
+    from Courses
+    print @CourseList
+    
     
 /* 4. Create a stored procedure to print total number of patients and their average age 
     to a specific doctor. The procedure should return total number of patients and their average age.          */
@@ -155,22 +167,148 @@
 /* 6. Create stored procedure to place an order and corresponding entry should be done in all tables like order, 
     order items, stock.                                                                                            */
 
+    --USE Assignment2;
+    --GO
+    ALTER PROCEDURE sp_PlaceOrder
+        @CustomerID INT,
+        @ProductID INT,
+        @Quantity INT,
+        @NewOrderID INT = NULL OUTPUT
+    AS 
+    BEGIN
+        DECLARE @CurrentStock INT;
+        DECLARE @UnitPrice DECIMAL(10,2);
+        Declare @TotalAmount DECIMAL(10,2);
+
+        BEGIN TRY
+            BEGIN TRANSACTION;
+
+            IF NOT EXISTS (SELECT 1 FROM dbo.Customers WHERE CustomerID = @CustomerID)
+            BEGIN
+                RAISERROR('Invalid Customer ID %d.', 16, 1, @CustomerID);
+            END;
+
+            Select @UnitPrice = UnitPrice
+            from dbo.Products 
+            where ProductID = @ProductID;
+
+            IF @UnitPrice is NULL
+            Begin
+                RAISERROR('Invalid Product ID %d.', 16, 1, @ProductID);
+            END;
+
+            Select @CurrentStock = QuantityAvailable 
+            from dbo.stock with (UPDLOCK)
+            where ProductID = @ProductID;
+
+            SET @CurrentStock = ISNULL(@CurrentStock, 0);
+
+            if @CurrentStock < @Quantity
+            BEGIN
+            RAISERROR('Insufficient stock for Product ID %d. Requested: %d, Available: %d.', 
+                      16, 1, @ProductID, @Quantity, @CurrentStock);
+        END;
+
+            set @TotalAmount = @UnitPrice * @Quantity;
+
+            INSERT INTO dbo.Orders (CustomerID, OrderDate, TotalAmount)
+            VALUES (@CustomerID, GETDATE(), @TotalAmount);
+
+            Set @NewOrderID = SCOPE_IDENTITY();
+
+            Insert into dbo.OrderItems (OrderID, ProductID, Quantity, UnitPrice)
+            VALUES (@NewOrderID, @ProductID, @Quantity, @UnitPrice);
+
+            UPDATE dbo.Stock
+            SET QuantityAvailable = QuantityAvailable - @Quantity, LastUpdated = GETDATE()
+            WHERE ProductID = @ProductID;
+
+            COMMIT TRANSACTION;
+            PRINT 'SUCCESS: Order #' + CAST(@NewOrderID AS VARCHAR(10)) + 
+              ' placed successfully. Total: Rs. ' + CAST(@TotalAmount AS VARCHAR(20));
+        END TRY
+        BEGIN CATCH
+            IF (XACT_STATE() <> 0)
+                BEGIN
+                ROLLBACK TRANSACTION;
+                END;
+            PRINT 'ORDER FAILED: Transaction rolled back.';
+            PRINT 'Error: ' + ERROR_MESSAGE();
+
+            THROW;
+        END CATCH
+    END;
+    GO
+           
+    --Test
+    DECLARE @GeneratedOrderID INT;
+
+    EXEC sp_PlaceOrder 
+        @CustomerID = 3,
+        @ProductID  = 2,
+        @Quantity   = 3,
+        @NewOrderID = @GeneratedOrderID OUTPUT;
+     
+-- Verify results:
+SELECT * FROM dbo.Orders WHERE OrderID = @GeneratedOrderID;
+SELECT * FROM dbo.OrderItems WHERE OrderID = @GeneratedOrderID;
+-- Stock for Product 1 should now be 8 (10 - 2):
+SELECT * FROM dbo.Stock WHERE ProductID = 1;
+
+        
+    
+
 /* 7. Create stored procedure to take input parameter passenger id to retrieve booking details for a specific 
     passenger and returns output parameters to provide information about the number of bookings and the total 
     amount spent by the passenger.                                                                                 */
 
+
+
 /* 8. Suppose there is table named sales that stores information about sales transactions, including the 
     sales ID, Sales Date, Customer ID, Product ID, and the Total Amount. Create indexes on the columns frequently 
     used in the WHERE clause or JOIN conditions like sales date, customer id, product id using covering index.          */
+    use Assignment2;
+    create nonclustered index ix_Sales_Cust_Prod_Date 
+    on dbo.Sales (CustomerID, ProductID, SalesDate)
+    INCLUDE (TotalAmount);
 
+    create nonclustered index ix_sales_cust_date
+    on dbo.sales (CustomerID,SalesDate)
+    include (productID, TotalAmount)
+
+    create nonclustered index ix_sales_prod_date
+    on dbo.sales (productID, SalesDate)
+    include (CustomerID, TotalAmount)
+
+    create nonclustered index ix_sales_date
+    on dbo.sales (SalesDate)
+    include (CustomerID, ProductID, TotalAmount)
+
+    SELECT CustomerID, ProductID, SalesDate, TotalAmount
+    FROM dbo.Sales
+    WHERE CustomerID = 101 and productID = 501 and SalesDate >= '2026-11-01';
 
 /* 9. Insert multiple transactions for different accounts and ensures that if any transaction fails, all the 
-    previous inserts are rolled back. Handle exceptions.                                                            */
+    previous inserts are rolled back. Handle exceptions. 
+    */
+
+
 
 /* 10. Create a clustered index on the Customer ID column and create a non-clustered index on multiple columns 
-    to optimize queries that filter by more than one column.                                                        */
+    to optimize queries that filter by more than one column.   
+    */
+    use Assignment2;
+    create clustered index ix_Sales_Trans_Cust
+    on [dbo].[SalesTransactions] (CustomerID);
 
+    CREATE NONCLUSTERED INDEX ix_Sales_Trans_Prod_Date
+    ON [dbo].[SalesTransactions] (ProductID, SalesDate);
+    
+    SELECT * 
+    FROM [dbo].[SalesTransactions]
+    WHERE CustomerID = 101;
 
-
-
+    SELECT SalesID, CustomerID, ProductID, SalesDate, TotalAmount
+    FROM [dbo].[SalesTransactions]
+    WHERE ProductID = 501 AND SalesDate >= '2026-11-01';
                                 
