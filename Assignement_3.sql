@@ -262,6 +262,53 @@ SELECT * FROM dbo.Stock WHERE ProductID = 1;
     passenger and returns output parameters to provide information about the number of bookings and the total 
     amount spent by the passenger.                                                                                 */
 
+    create procedure sp_GetPassengerBookingDetails
+        @PassengerID INT,
+        @TotalBookings INt = NULL output,
+        @TotalAmountSpent Decimal(12,2) = Null output
+    AS
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM dbo.Passengers WHERE PassengerID = @PassengerID)
+    BEGIN
+        PRINT 'Passenger ID ' + CAST(@PassengerID AS VARCHAR(10)) + ' does not exist.';
+        SET @TotalBookings = 0;
+        SET @TotalAmountSpent = 0.00;
+        RETURN;
+    END;
+
+    SELECT 
+        @TotalBookings    = COUNT(BookingID),
+        @TotalAmountSpent = ISNULL(SUM(TicketAmount), 0.00)
+    FROM dbo.Bookings
+    WHERE PassengerID = @PassengerID;
+
+     SELECT 
+        b.BookingID,
+        p.PassengerName,
+        b.FlightNumber,
+        b.Destination,
+        b.BookingDate,
+        b.TicketAmount,
+        b.BookingStatus
+    FROM dbo.Bookings b
+    INNER JOIN dbo.Passengers p ON b.PassengerID = p.PassengerID
+    WHERE b.PassengerID = @PassengerID
+    ORDER BY b.BookingDate DESC;
+END;
+GO
+
+-- test
+declare @BookingsCount INT;
+Declare @TotalSpent Decimal(12,2);
+
+EXEC sp_GetPassengerBookingDetails
+         @PassengerID      = 2,
+        @TotalBookings    = @BookingsCount OUTPUT,
+        @TotalAmountSpent = @TotalSpent    OUTPUT;
+print @BookingsCount
+print  @TotalSpent
+
+
 
 
 /* 8. Suppose there is table named sales that stores information about sales transactions, including the 
