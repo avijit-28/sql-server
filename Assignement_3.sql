@@ -150,8 +150,7 @@
         @EnrollmentDate = '2026-11-19';
 
     SELECT * FROM dbo.Enrollments WHERE StudentID = 1;
-
-            
+        
 
 /* 6. Create stored procedure to place an order and corresponding entry should be done in all tables like order, 
     order items, stock.                                                                                            */
