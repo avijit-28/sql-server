@@ -338,8 +338,49 @@ print  @TotalSpent
 /* 9. Insert multiple transactions for different accounts and ensures that if any transaction fails, all the 
     previous inserts are rolled back. Handle exceptions. 
     */
+    use Assignment2;
 
+    Begin try
+        begin transaction
 
+        -- Transaction 1
+        INSERT INTO dbo.AccountTransactions (AccountID, TransactionType, Amount)
+        VALUES (1001, 'Deposit', 5000.00);
+
+        UPDATE dbo.Accounts
+        SET Balance = Balance + 5000.00
+        WHERE AccountID = 1001;
+
+        -- Transaction 2
+        INSERT INTO dbo.AccountTransactions (AccountID, TransactionType, Amount)
+        VALUES (1002, 'Withdrawal', 3000.00);
+    
+        UPDATE dbo.Accounts
+        SET Balance = Balance - 3000.00
+        WHERE AccountID = 1002;
+
+        -- Transaction 3
+        INSERT INTO dbo.AccountTransactions (AccountID, TransactionType, Amount)
+        VALUES (1003, 'Deposit', 10000.00);
+       
+        UPDATE dbo.Accounts
+        SET Balance = Balance + 10000.00
+        WHERE AccountID = 1003;
+        
+        COMMIT TRANSACTION;
+    PRINT 'All transactions for all accounts committed successfully'
+    end try
+    begin catch
+        IF (XACT_STATE() <> 0)
+        BEGIN
+            ROLLBACK TRANSACTION;
+            PRINT 'Transaction rolled back'
+        end;
+        print 'Caught Error:' + Error_Message()
+
+    end catch
+
+    SELECT * FROM dbo.AccountTransactions
 
 /* 10. Create a clustered index on the Customer ID column and create a non-clustered index on multiple columns 
     to optimize queries that filter by more than one column.   
