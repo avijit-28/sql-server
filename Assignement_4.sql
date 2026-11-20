@@ -442,15 +442,7 @@ END;
 
  EXEC dbo.sp_EscalateOverdueComplaints; 
 
-INSERT INTO ComplaintEscalationLog (ComplaintID, OldStatus, NewStatus, EscalationDate)
-SELECT 
-    ComplaintID, 
-    'Open', 
-    'Escalated', 
-    GETDATE()
-FROM dbo.Complaints
-WHERE Status = 'Open'
-  AND DATEDIFF(DAY, ComplaintDate, GETDATE()) > 7;
+select * from Complaints
 
 SELECT 
     ComplaintID, 
@@ -460,9 +452,19 @@ SELECT
     Status, 
     EscalationDate
 FROM dbo.Complaints
-WHERE ComplaintID >= IDENT_CURRENT('dbo.Complaints') - 4;
+WHERE ComplaintID >= IDENT_CURRENT('dbo.Complaints') - 10;
 GO
+
 select * from ComplaintEscalationLog
 
+SELECT 
+    ComplaintID,
+    DealerID,
+    LEFT(IssueDescription, 30) AS Issue,
+    DATEDIFF(DAY, ComplaintDate, GETDATE()) AS DaysOpen
+    ,status
+    ,EscalationDate
+FROM dbo.Complaints
 
+ORDER BY ComplaintID DESC;
 
