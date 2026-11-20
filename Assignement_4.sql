@@ -286,3 +286,183 @@ VALUES
     (999, 'AI-888', 'Jaipur', '2026-11-26', 3500.00, 'Confirmed'); -- 999 does not exist!
 -- This will throw an error and rollback completely
 EXEC sp_insertticketBookings @BookingList = @InvalidBatch;
+
+-- 6
+CREATE TABLE #edges (
+    source_node      VARCHAR(10) NOT NULL,
+    destination_node VARCHAR(10) NOT NULL
+);
+INSERT INTO #edges (source_node, destination_node)
+VALUES 
+    ('A', 'B'),
+    ('A', 'C'),
+    ('A', 'E'),
+    ('B', 'C'),
+    ('B', 'D'),
+    ('C', 'D'),
+    ('E', 'D'),
+    ('C', 'B');
+
+
+
+DECLARE @start_node  VARCHAR(10) = 'A';
+DECLARE @target_node VARCHAR(10) = 'D';
+
+WITH GraphPaths AS (
+    SELECT 
+        source_node,
+        destination_node,
+        CAST(source_node + ' -> ' + destination_node AS VARCHAR(MAX)) AS full_path,
+        CAST(',' + source_node + ',' + destination_node + ',' AS VARCHAR(MAX)) AS visited_nodes,
+        1 AS step_count
+    FROM #edges
+    WHERE source_node = @start_node
+
+    UNION ALL
+
+    SELECT 
+        e.source_node,
+        e.destination_node,
+        CAST(gp.full_path + ' -> ' + e.destination_node AS VARCHAR(MAX)) AS full_path,
+        CAST(gp.visited_nodes + e.destination_node + ',' AS VARCHAR(MAX)) AS visited_nodes,
+        gp.step_count + 1 AS step_count
+    FROM GraphPaths gp
+    INNER JOIN #edges e 
+        ON gp.destination_node = e.source_node
+    WHERE 
+        gp.destination_node <> @target_node
+        AND CHARINDEX(',' + e.destination_node + ',', gp.visited_nodes) = 0
+)
+SELECT 
+    full_path, 
+    step_count AS number_of_edges
+FROM GraphPaths
+WHERE destination_node = @target_node
+ORDER BY step_count ASC, full_path ASC
+
+--8
+create type productTableType as Table (
+    productName varchar(100) not null,
+    unitPrice Decimal(10,2) not null,
+    stockQuantity INT not null Default 0);
+
+create procedure BulkInsertProducts
+    @NewProducts productTableType Readonly
+as 
+begin
+    begin try
+        begin transaction
+
+        INSERT INTO dbo.Products (ProductName, UnitPrice, StockQuantity)
+        SELECT 
+            ProductName, 
+            UnitPrice, 
+            StockQuantity
+        FROM @NewProducts;
+
+        DECLARE @InsertedCount INT = @@ROWCOUNT;
+
+        COMMIT TRANSACTION;
+        PRINT 'product added successfully';
+
+        select top(@InsertedCount)
+            ProductID,
+            ProductName,
+            UnitPrice,
+            StockQuantity
+        from Products
+        order by ProductID Desc
+    end try
+    begin catch
+        if @@TRANCOUNT > 0
+            rollback transaction;
+
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrMsg, 16, 1);
+    END CATCH
+END;
+GO
+
+DECLARE @ProductBatch ProductTableType;
+INSERT INTO @ProductBatch (ProductName, UnitPrice, StockQuantity)
+VALUES
+    ('Mechanical Keyboard RGB', 3499.00, 25),
+    ('Ultra-Wide Gaming Monitor', 28500.00, 10),
+    ('Wireless Noise-Canceling Headset', 6999.00, 40);
+-- Pass the table variable into the stored procedure
+EXEC BulkInsertProducts @NewProducts = @ProductBatch;
+GO
+
+-- 9 
+use PaintDB;
+go
+alter procedure sp_EscalateOverdueComplaints
+as 
+begin
+    begin try
+        begin transaction
+            
+        update complaints
+        set 
+            status = 'Escalated',
+            EscalationDate = getdate() 
+            
+        
+        where status = 'open'
+            and datediff(Day,complaintDate, GetDate()) > 7;
+
+        declare @updatedCount int = @@rowcount;
+        commit transaction
+
+        PRINT CAST(@UpdatedCount AS VARCHAR(10)) + ' complaints open for > 7 days have been Escalated.';
+        
+        SELECT 
+            ComplaintID,          
+            DealerID,
+            IssueDescription,
+            ComplaintDate,
+            DATEDIFF(DAY, ComplaintDate, EscalationDate) AS DaysOpen,
+            Status,
+            EscalationDate
+        FROM dbo.Complaints
+        where Status = 'Escalated'
+
+    end try
+    begin catch
+        if @@TRANCOUNT > 0 
+        BEGIN
+            ROLLBACK TRANSACTION;
+            PRINT 'Transaction rolled back due to an error.';
+        END
+
+         DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrMsg, 16, 1);
+    END CATCH
+END;
+
+ EXEC dbo.sp_EscalateOverdueComplaints; 
+
+INSERT INTO ComplaintEscalationLog (ComplaintID, OldStatus, NewStatus, EscalationDate)
+SELECT 
+    ComplaintID, 
+    'Open', 
+    'Escalated', 
+    GETDATE()
+FROM dbo.Complaints
+WHERE Status = 'Open'
+  AND DATEDIFF(DAY, ComplaintDate, GETDATE()) > 7;
+
+SELECT 
+    ComplaintID, 
+    LEFT(IssueDescription, 30) AS Issue,
+    ComplaintDate, 
+    DATEDIFF(DAY, ComplaintDate, GETDATE()) AS DaysOpen,
+    Status, 
+    EscalationDate
+FROM dbo.Complaints
+WHERE ComplaintID >= IDENT_CURRENT('dbo.Complaints') - 4;
+GO
+select * from ComplaintEscalationLog
+
+
+
