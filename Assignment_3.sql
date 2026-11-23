@@ -86,7 +86,7 @@ END;
     WHERE @doctor_id = a.doctor_id
     END;
 
-    DECLARE @DoctorID INT = 55;
+    DECLARE @DoctorID INT = 5;
     DECLARE @PatientCount  INT;
     DECLARE @AvgAge DECIMAL(5, 2) ;
 
@@ -157,11 +157,11 @@ END;
 
     --TEST 
     EXEC sp_EnrollStudentMultipleCourses 
-        @StudentID = 1, 
-        @CourseIDs = '4,1', 
+        @StudentID = 2, 
+        @CourseIDs = '1', 
         @EnrollmentDate = '2026-11-19';
 
-    SELECT * FROM dbo.Enrollments WHERE StudentID = 1;
+    SELECT * FROM dbo.Enrollments WHERE StudentID = 2;
         
 
 /* 6. Create stored procedure to place an order and corresponding entry should be done in all tables like order, 
@@ -302,7 +302,7 @@ declare @BookingsCount INT;
 Declare @TotalSpent Decimal(12,2);
 
 EXEC sp_GetPassengerBookingDetails
-         @PassengerID      = 2,
+         @PassengerID      = 1,
         @TotalBookings    = @BookingsCount OUTPUT,
         @TotalAmountSpent = @TotalSpent    OUTPUT;
 print @BookingsCount
