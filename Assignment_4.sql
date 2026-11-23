@@ -21,14 +21,14 @@ VALUES
 SELECT 
     StudentName, 
     FatherName, 
-    COUNT(*) AS DuplicateCount
+    COUNT(*) AS Duplicate_Name
 FROM #Students
 GROUP BY StudentName, FatherName
 HAVING COUNT(*) > 1;
 
 
 -- 2
-SELECT FORMAT(GETDATE(), 'MMM dd yyyy HH:mm tt')
+SELECT FORMAT(GETDATE(), 'MMM dd yyyy HH:mm tt') as Date_Format
 
 -- 3
 use Assignment2
@@ -83,7 +83,7 @@ END;
             
 EXEC sp_UpdateTrainSeat;
 SELECT train_id, train_name, available_seats FROM dbo.trains;
-select * from dbo.reservations
+SELECT * FROM dbo.reservations
 
 -- 4
 
@@ -202,7 +202,8 @@ SELECT ProductID, ProductName, StockQuantity FROM dbo.Products;
 SELECT TransactionID, ProductID, TransactionType, Quantity, IsProcessed 
 FROM dbo.Transactions;
 
--- 5
+
+-- 6
 CREATE TYPE TicketBookingType AS TABLE (
     PassengerID   INT NOT NULL,
     FlightNumber  VARCHAR(20) NOT NULL,
@@ -211,6 +212,8 @@ CREATE TYPE TicketBookingType AS TABLE (
     TicketAmount  DECIMAL(10,2) NOT NULL,
     BookingStatus VARCHAR(20) DEFAULT 'Confirmed'
 );
+
+
 alter procedure sp_insertticketBookings
     @bookingList TicketBookingType READONLY
 as 
@@ -259,9 +262,9 @@ end
 DECLARE @MyBookingBatch TicketBookingType;
 INSERT INTO @MyBookingBatch (PassengerID, FlightNumber, Destination, BookingDate, TicketAmount, BookingStatus)
 VALUES
-    (1, 'AI-101', 'Mumbai',    '2026-11-21', 5200.00, 'Confirmed'),
+    (1, 'AI-101', 'kolkata',    '2026-11-21', 5200.00, 'Confirmed'),
     (2, '6E-205', 'Chennai',   '2026-11-22', 4300.00, 'Confirmed'),
-    (1, 'SG-404', 'Hyderabad', '2026-11-23', 3800.00, 'Confirmed');
+    (1, 'SG-404', 'kolkata', '2026-11-23', 3800.00, 'Confirmed');
 
 EXEC sp_insertticketBookings @BookingList = @MyBookingBatch;
 GO
@@ -287,7 +290,8 @@ VALUES
 -- This will throw an error and rollback completely
 EXEC sp_insertticketBookings @BookingList = @InvalidBatch;
 
--- 6
+
+-- 7
 CREATE TABLE #edges (
     source_node      VARCHAR(10) NOT NULL,
     destination_node VARCHAR(10) NOT NULL
@@ -386,9 +390,9 @@ GO
 DECLARE @ProductBatch ProductTableType;
 INSERT INTO @ProductBatch (ProductName, UnitPrice, StockQuantity)
 VALUES
-    ('Mechanical Keyboard RGB', 3499.00, 25),
-    ('Ultra-Wide Gaming Monitor', 28500.00, 10),
-    ('Wireless Noise-Canceling Headset', 6999.00, 40);
+    ('electronic Keyboard RGB', 5000.00, 25),
+    ('Ultra Max Gaming Monitor', 28500.00, 10),
+    ('Wireless Noise-Canceling Bluetooth speaker', 6999.00, 40);
 -- Pass the table variable into the stored procedure
 EXEC BulkInsertProducts @NewProducts = @ProductBatch;
 GO
